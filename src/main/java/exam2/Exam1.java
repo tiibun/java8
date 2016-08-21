@@ -16,7 +16,9 @@ public class Exam1 {
         new BigDecimal("15.600"),
         new BigDecimal("15.800"));
 
-    System.out.println(/*合計*/);
+    BigDecimal total = list.stream()
+      .reduce(BigDecimal.ZERO, BigDecimal::add);
+    System.out.println(total);
   }
 
 }

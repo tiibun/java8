@@ -1,37 +1,44 @@
 package exam2;
 
+import static java.util.Comparator.comparingInt;
+import static java.util.stream.Collectors.averagingInt;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.maxBy;
+
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public class Exam2 {
   enum Medal {
     GOLD, SILVER, BRONZE
   }
-  
+
   static class Person {
     final int age;
     final String name;
     final Medal medal;
-    
+
     Person(String name, int age, Medal medal) {
       this.name = name;
       this.age = age;
       this.medal = medal;
     }
-    
+
     int getAge() {
       return age;
     }
-    
+
     String getName() {
       return name;
     }
-    
+
     Medal getMedal() {
       return medal;
     }
   }
-  
+
   public static void main(String[] args) {
     List<Person> list = Arrays.asList(
         new Person("ハギノ コウスケ", 21, Medal.GOLD),
@@ -93,12 +100,19 @@ public class Exam2 {
         new Person("オクハラ ノゾミ", 21, Medal.BRONZE),
         new Person("ハネダ タクヤ", 29, Medal.BRONZE)
         );
-    
+
     // TODO 1.メダル別の平均年齢を求めてください
-    
+    Map<Medal, Double> averageAge = list.stream()
+      .collect(groupingBy(Person::getMedal, averagingInt(Person::getAge)));
+    System.out.println(averageAge);
+
     // TODO 2.メダル別の最高年齢の名前を出力してください
-    
-    
+    Map<Medal, Optional<Person>> maxAge =
+        list.stream()
+        .collect(groupingBy(Person::getMedal, maxBy(comparingInt(Person::getAge))));
+    maxAge.forEach((m, op) ->
+      System.out.println(m + "=" + op.map(Person::getName).orElse(""))
+    );
   }
 
 }
