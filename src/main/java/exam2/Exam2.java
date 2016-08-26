@@ -1,37 +1,50 @@
 package exam2;
 
+import static java.util.stream.Collectors.*;
+
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class Exam2 {
   enum Medal {
-    GOLD, SILVER, BRONZE
+    GOLD, SILVER, BRONZE, NOTHING
   }
-  
+
   static class Person {
     final int age;
     final String name;
     final Medal medal;
-    
+
     Person(String name, int age, Medal medal) {
       this.name = name;
       this.age = age;
       this.medal = medal;
     }
-    
+
     int getAge() {
       return age;
     }
-    
+
     String getName() {
       return name;
     }
-    
+
     Medal getMedal() {
       return medal;
     }
+
+    public static Person nobody() {
+      return new Person("nobody", 0, Medal.NOTHING);
+    }
   }
-  
+
   public static void main(String[] args) {
     List<Person> list = Arrays.asList(
         new Person("ハギノ コウスケ", 21, Medal.GOLD),
@@ -91,14 +104,58 @@ public class Exam2 {
         new Person("マツモト カオリ", 28, Medal.BRONZE),
         new Person("ヤマベ カナエ", 25, Medal.BRONZE),
         new Person("オクハラ ノゾミ", 21, Medal.BRONZE),
-        new Person("ハネダ タクヤ", 29, Medal.BRONZE)
-        );
-    
-    // TODO 1.メダル別の平均年齢を求めてください
-    
-    // TODO 2.メダル別の最高年齢の名前を出力してください
-    
-    
+        new Person("ハネダ タクヤ", 29, Medal.BRONZE));
+
+    // 1.メダル別の平均年齢を求めてください
+    Map<Medal, Double> averageAge = list.stream()
+        .collect(groupingBy(Person::getMedal, averagingInt(Person::getAge)));
+    System.out.println("Gold : " + averageAge.get(Medal.GOLD));
+    System.out.println("Silver : " + averageAge.get(Medal.SILVER));
+    System.out.println("Bronze : " + averageAge.get(Medal.BRONZE));
+
+    // 2.メダル別の最高年齢の名前を出力してください
+    // 一人出力バージョン
+    Map<Medal, Optional<Person>> maxAgeMedalistEachMedal = list.stream()
+        .collect(groupingBy(Person::getMedal, maxBy(Comparator.comparingInt(Person::getAge))));
+
+    // メダル名を文字列の前に追加する関数
+    Function<Medal, Function<String, String>> toStringBeforeMedalName = medal -> appended -> medal.name() + " : " + appended;
+
+    // 最高齢の人の名前を出力する関数
+    Function<Medal, String> toStringMaxAgeMedalist = medal -> toStringBeforeMedalName.apply(medal)
+        .apply(maxAgeMedalistEachMedal.getOrDefault(medal, Optional.empty())
+            .orElse(Person.nobody()).getName());
+
+    // 出力
+    Arrays.stream(Medal.values()).map(toStringMaxAgeMedalist).forEach(System.out::println);
+
+    // 複数人いた場合の出力バージョン
+    Map<Medal, Optional<Integer>> maxAgeEachMedal = list.stream()
+        .collect(groupingBy(Person::getMedal, mapping(Person::getAge, maxBy(Integer::compare))));
+
+    // メダリスト抽出関数
+    Function<List<Person>, Function<Map<Medal, Optional<Integer>>, Function<Medal, String>>> extractMaxAgeMedalistName =
+        persons -> medalAgeMap -> medal -> list.stream()
+            .filter(has(medal).and(isSameAge(maxAgeEachMedal.getOrDefault(medal, Optional.empty()).orElse(Person.nobody().getAge()))))
+            .map(Person::getName)
+            .collect(joining(","));
+
+
+    Function<Medal, String> toStringMaxAgeMedalists = medal -> toStringBeforeMedalName
+        .apply(medal).apply(
+            // メダリスト名の抽出
+            extractMaxAgeMedalistName.apply(list).apply(maxAgeEachMedal).apply(medal));
+
+    Arrays.stream(Medal.values()).map(toStringMaxAgeMedalists).forEach(System.out::println);
+
+
   }
 
+  private static Predicate<Person> has(Medal medal) {
+    return e -> e.getMedal().equals(medal);
+  }
+
+  private static Predicate<Person> isSameAge(int age) {
+    return e -> Objects.equals(e.getAge(), age);
+  }
 }

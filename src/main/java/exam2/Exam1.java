@@ -16,7 +16,20 @@ public class Exam1 {
         new BigDecimal("15.600"),
         new BigDecimal("15.800"));
 
-    System.out.println(/*合計*/);
+    // BigDecimal
+    BigDecimal sum = list.stream()
+        .reduce(new BigDecimal(0), BigDecimal::add);
+
+    System.out.println("BigDecimal : " + sum);
+
+
+    // double版
+    double sumDouble = list.stream()
+        .mapToDouble(BigDecimal::doubleValue)
+        .sum();
+
+    System.out.println("double : " + sumDouble);
+
   }
 
 }
