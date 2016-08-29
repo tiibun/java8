@@ -3,16 +3,21 @@ package exam2;
 import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.averagingInt;
 import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.maxBy;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 public class Exam2 {
   enum Medal {
-    GOLD, SILVER, BRONZE
+    GOLD, SILVER, BRONZE, NOTHING
   }
 
   static class Person {
@@ -36,6 +41,10 @@ public class Exam2 {
 
     Medal getMedal() {
       return medal;
+    }
+  
+    public static Person nobody() {
+        return new Person("nobody", 0, Medal.NOTHING);
     }
   }
 
@@ -107,12 +116,44 @@ public class Exam2 {
     System.out.println(averageAge);
 
     // TODO 2.メダル別の最高年齢の名前を出力してください
+    // 一人出力バージョン
     Map<Medal, Optional<Person>> maxAge =
         list.stream()
         .collect(groupingBy(Person::getMedal, maxBy(comparingInt(Person::getAge))));
     maxAge.forEach((m, op) ->
       System.out.println(m + "=" + op.map(Person::getName).orElse(""))
     );
+    
+    // 複数人いた場合の出力バージョン
+    Map<Medal, Optional<Integer>> maxAgeEachMedal = list.stream()
+        .collect(groupingBy(Person::getMedal, mapping(Person::getAge, maxBy(Integer::compare))));
+
+    
+    // メダル名を文字列の前に追加する関数
+    Function<Medal, Function<String, String>> toStringBeforeMedalName = medal -> appended -> medal.name() + " : " + appended;
+
+    // メダリスト抽出関数
+    Function<List<Person>, Function<Map<Medal, Optional<Integer>>, Function<Medal, String>>> extractMaxAgeMedalistName =
+        persons -> medalAgeMap -> medal -> list.stream()
+            .filter(has(medal).and(isSameAge(maxAgeEachMedal.getOrDefault(medal, Optional.empty()).orElse(Person.nobody().getAge()))))
+            .map(Person::getName)
+            .collect(joining(","));
+
+
+    Function<Medal, String> toStringMaxAgeMedalists = medal -> toStringBeforeMedalName
+        .apply(medal).apply(
+            // メダリスト名の抽出
+            extractMaxAgeMedalistName.apply(list).apply(maxAgeEachMedal).apply(medal));
+
+    Arrays.stream(Medal.values()).map(toStringMaxAgeMedalists).forEach(System.out::println);
   }
 
+	private static Predicate<Person> has(Medal medal) {
+		return e -> e.getMedal().equals(medal);
+	}
+
+	private static Predicate<Person> isSameAge(int age) {
+		return e -> Objects.equals(e.getAge(), age);
+	}
+	  
 }
