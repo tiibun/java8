@@ -7,7 +7,7 @@ import java.util.List;
 public class Exam1 {
 
   public static void main(String[] args) {
-    // TODO list縺ｮ蜷郁ｨ育せ繧貞�ｺ蜉帙＠縺ｦ縺上□縺輔＞
+    // TODO listの合計点を出力してください
     List<BigDecimal> list = Arrays.asList(
         new BigDecimal("15.766"),
         new BigDecimal("14.900"),
