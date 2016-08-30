@@ -82,11 +82,10 @@ public class Exam2 {
         new Person("オクハラ ノゾミ", 21, Medal.BRONZE), new Person("ハネダ タクヤ", 29, Medal.BRONZE));
 
     // 1.メダル別の平均年齢を求めてください
+    // TODO 1.メダル別の平均年齢を求めてください
     Map<Medal, Double> averageAge = list.stream()
-        .collect(groupingBy(Person::getMedal, averagingInt(Person::getAge)));
-    System.out.println("Gold : " + averageAge.get(Medal.GOLD));
-    System.out.println("Silver : " + averageAge.get(Medal.SILVER));
-    System.out.println("Bronze : " + averageAge.get(Medal.BRONZE));
+      .collect(groupingBy(Person::getMedal, averagingInt(Person::getAge)));
+    System.out.println(averageAge);
 
     // 2.メダル別の最高年齢の名前を出力してください
     // 一人出力バージョン
