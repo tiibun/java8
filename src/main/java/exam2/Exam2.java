@@ -110,14 +110,14 @@ public class Exam2 {
                 .collect(groupingBy(Person::getMedal, mapping(Person::getAge, reducing(0, BinaryOperator.maxBy(Integer::compare)))));
 
         // メダリスト抽出関数
-        Function<List<Person>, Function<Map<Medal, Integer>, Function<Medal, String>>> extractMaxAgeMedalistName = persons -> medalAgeMap -> medal -> list.stream()
+        Function<Map<Medal, Integer>, Function<Medal, Function<List<Person>, String>>> extractMaxAgeMedalistName = medalAgeMap -> medal -> persons -> persons.stream()
                 .filter(has(medal).and(isSameAge(maxAgeEachMedal.getOrDefault(medal, 0))))
                 .map(Person::getName)
                 .collect(joining(","));
 
-        Function<Medal, String> toStringMaxAgeMedalists = medal -> toStringBeforeMedalName.apply(medal).apply(
-                // メダリスト名の抽出
-                extractMaxAgeMedalistName.apply(list).apply(maxAgeEachMedal).apply(medal));
+        Function<Medal, String> toStringMaxAgeMedalists = medal -> extractMaxAgeMedalistName.apply(maxAgeEachMedal).apply(medal)
+                .andThen(toStringBeforeMedalName.apply(medal))
+                .apply(list);
 
         Arrays.stream(Medal.values()).map(toStringMaxAgeMedalists).forEach(System.out::println);
 
