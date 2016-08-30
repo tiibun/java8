@@ -14,6 +14,12 @@ public class Sample1 {
       .filter(s -> s.startsWith("A"))
       .collect(Collectors.toList());
 
+    // 配列への変換
+    String[] subArray = list.stream()
+      .filter(s -> s.startsWith("A"))
+      .toArray(String[]::new);
+    
     System.out.println(subList);
+    System.out.println(Arrays.asList(subArray));
   }
 }
