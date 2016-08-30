@@ -130,4 +130,5 @@ public class Exam2 {
     private static Predicate<Person> isSameAge(int age) {
         return e -> Objects.equals(e.getAge(), age);
     }
+
 }
